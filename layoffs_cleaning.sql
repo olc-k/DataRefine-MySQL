@@ -17,3 +17,15 @@ CREATE TABLE layoffs (
     country TEXT,
     funds_raised_millions TEXT
 );
+
+-- Create staging table for safe data cleaning
+
+SELECT * 
+FROM world_layoffs.layoffs;
+
+CREATE TABLE world_layoffs.layoffs_staging 
+LIKE world_layoffs.layoffs;
+
+INSERT layoffs_staging 
+SELECT * 
+FROM world_layoffs.layoffs;
