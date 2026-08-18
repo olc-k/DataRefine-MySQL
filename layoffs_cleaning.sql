@@ -26,6 +26,38 @@ FROM world_layoffs.layoffs;
 CREATE TABLE world_layoffs.layoffs_staging 
 LIKE world_layoffs.layoffs;
 
-INSERT layoffs_staging 
+
+INSERT INTO layoffs_staging 
 SELECT * 
 FROM world_layoffs.layoffs;
+
+-- 1.REMOVE DUPLICATES
+
+/* 
+Verification Query - run manually to inspect duplicate records before deletion
+
+SELECT *
+FROM (
+    SELECT *,
+        ROW_NUMBER() OVER (
+            PARTITION BY company, location, industry, total_laid_off, percentage_laid_off, `date`, stage, country, funds_raised_millions
+        ) AS row_num
+    FROM world_layoffs.layoffs_staging
+) duplicates
+WHERE row_num > 1;
+*/
+
+-- Create target staging table with a row_num column
+CREATE TABLE `world_layoffs`.`layoffs_staging2` (
+  `company` TEXT,
+  `location` TEXT,
+  `industry` TEXT,
+  `total_laid_off` TEXT,
+  `percentage_laid_off` TEXT,
+  `date` TEXT,
+  `stage` TEXT,
+  `country` TEXT,
+  `funds_raised_millions` TEXT,
+  `row_num` INT
+);
+
