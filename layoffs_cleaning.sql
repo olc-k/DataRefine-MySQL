@@ -84,3 +84,6 @@ DELETE
 FROM world_layoffs.layoffs_staging2
 WHERE row_num >= 2;
 
+--Drop the temporary helper column
+ALTER TABLE world_layoffs.layoffs_staging2
+DROP COLUMN row_num;
