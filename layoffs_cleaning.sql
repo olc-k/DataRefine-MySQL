@@ -78,3 +78,9 @@ SELECT
                      percentage_laid_off, `date`, stage, country, funds_raised_millions
     ) AS row_num
 FROM world_layoffs.layoffs_staging;
+
+-- Delete identified duplicates
+DELETE 
+FROM world_layoffs.layoffs_staging2
+WHERE row_num >= 2;
+
