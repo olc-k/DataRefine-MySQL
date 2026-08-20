@@ -110,3 +110,24 @@ MODIFY COLUMN `date` DATE,
 MODIFY COLUMN total_laid_off INT,
 MODIFY COLUMN percentage_laid_off DOUBLE,
 MODIFY COLUMN funds_raised_millions INT;
+
+-- Trim whitespace from company names
+UPDATE world_layoffs.layoffs_staging2
+SET company = TRIM(company);
+
+-- Populate missing industries using data from matching companies (e.g., Airbnb)
+UPDATE world_layoffs.layoffs_staging2 t1
+JOIN world_layoffs.layoffs_staging2 t2
+    ON t1.company = t2.company
+SET t1.industry = t2.industry
+WHERE t1.industry IS NULL
+  AND t2.industry IS NOT NULL;
+
+-- Standardize Crypto industry names
+UPDATE world_layoffs.layoffs_staging2
+SET industry = 'Crypto'
+WHERE industry LIKE 'Crypto%';
+
+-- Remove trailing periods from country names
+UPDATE world_layoffs.layoffs_staging2
+SET country = TRIM(TRAILING '.' FROM country);
