@@ -1,3 +1,4 @@
+-- 1. DATA STANGING
 CREATE DATABASE world_layoffs;
 USE world_layoffs;
 
@@ -31,7 +32,7 @@ INSERT INTO layoffs_staging
 SELECT * 
 FROM world_layoffs.layoffs;
 
--- 1.REMOVE DUPLICATES
+-- 2.REMOVE DUPLICATES
 
 /* 
 Verification Query - run manually to inspect duplicate records before deletion
@@ -87,3 +88,25 @@ WHERE row_num >= 2;
 --Drop the temporary helper column
 ALTER TABLE world_layoffs.layoffs_staging2
 DROP COLUMN row_num;
+
+-- 3. DATA STANDARDIZATION
+
+-- Convert literal 'NaN', 'NULL', and empty strings to actual database NULLs
+UPDATE world_layoffs.layoffs_staging2
+SET total_laid_off = NULLIF(NULLIF(NULLIF(total_laid_off, 'NaN'), 'NULL'), ''),
+    percentage_laid_off = NULLIF(NULLIF(NULLIF(percentage_laid_off, 'NaN'), 'NULL'), ''),
+    funds_raised_millions = NULLIF(NULLIF(NULLIF(funds_raised_millions, 'NaN'), 'NULL'), ''),
+    `date` = NULLIF(NULLIF(NULLIF(`date`, 'NaN'), 'NULL'), ''),
+    industry = NULLIF(NULLIF(NULLIF(industry, 'NaN'), 'NULL'), ''),
+    stage = NULLIF(NULLIF(NULLIF(stage, 'NaN'), 'NULL'), '');
+
+--Change date format from MM/DD/YYYY to YYYY-MM-DD
+UPDATE world_layoffs.layoffs_staging2
+SET `date` = STR_TO_DATE(`date`, '%m/%d/%Y');
+
+-- Modify column data types in the table schema
+ALTER TABLE world_layoffs.layoffs_staging2
+MODIFY COLUMN `date` DATE,
+MODIFY COLUMN total_laid_off INT,
+MODIFY COLUMN percentage_laid_off DOUBLE,
+MODIFY COLUMN funds_raised_millions INT;
