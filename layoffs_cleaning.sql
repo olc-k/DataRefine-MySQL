@@ -128,6 +128,11 @@ UPDATE world_layoffs.layoffs_staging2
 SET industry = 'Crypto'
 WHERE industry LIKE 'Crypto%';
 
+-- Merge 'Fin-Tech' into 'Finance' to avoid industry fragmentation in EDA
+UPDATE world_layoffs.layoffs_staging2
+SET industry = 'Finance'
+WHERE industry = 'Fin-Tech';
+
 -- Remove trailing periods from country names
 UPDATE world_layoffs.layoffs_staging2
 SET country = TRIM(TRAILING '.' FROM country);
