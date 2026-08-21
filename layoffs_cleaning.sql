@@ -131,3 +131,19 @@ WHERE industry LIKE 'Crypto%';
 -- Remove trailing periods from country names
 UPDATE world_layoffs.layoffs_staging2
 SET country = TRIM(TRAILING '.' FROM country);
+
+-- Standardize location names
+UPDATE world_layoffs.layoffs_staging2
+SET location = 'Düsseldorf'
+WHERE location = 'Dusseldorf';
+
+UPDATE world_layoffs.layoffs_staging2
+SET location = 'Malmö'
+WHERE location = 'Malmo';
+
+-- 2.7. Standardize company casing inconsistencies
+UPDATE world_layoffs.layoffs_staging2 SET company = 'SalesLoft' WHERE company = 'Salesloft';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'AppGate' WHERE company = 'Appgate';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'Clearco' WHERE company = 'ClearCo';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'ByteDance' WHERE company = 'Bytedance';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'CureFit' WHERE company = 'Curefit';
