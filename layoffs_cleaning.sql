@@ -1,3 +1,4 @@
+-- 1. DATA STANGING
 CREATE DATABASE world_layoffs;
 USE world_layoffs;
 
@@ -31,7 +32,7 @@ INSERT INTO layoffs_staging
 SELECT * 
 FROM world_layoffs.layoffs;
 
--- 1.REMOVE DUPLICATES
+-- 2.REMOVE DUPLICATES
 
 /* 
 Verification Query - run manually to inspect duplicate records before deletion
@@ -87,3 +88,67 @@ WHERE row_num >= 2;
 --Drop the temporary helper column
 ALTER TABLE world_layoffs.layoffs_staging2
 DROP COLUMN row_num;
+
+-- 3. DATA STANDARDIZATION
+
+-- Convert literal 'NaN', 'NULL', and empty strings to actual database NULLs
+UPDATE world_layoffs.layoffs_staging2
+SET total_laid_off = NULLIF(NULLIF(NULLIF(total_laid_off, 'NaN'), 'NULL'), ''),
+    percentage_laid_off = NULLIF(NULLIF(NULLIF(percentage_laid_off, 'NaN'), 'NULL'), ''),
+    funds_raised_millions = NULLIF(NULLIF(NULLIF(funds_raised_millions, 'NaN'), 'NULL'), ''),
+    `date` = NULLIF(NULLIF(NULLIF(`date`, 'NaN'), 'NULL'), ''),
+    industry = NULLIF(NULLIF(NULLIF(industry, 'NaN'), 'NULL'), ''),
+    stage = NULLIF(NULLIF(NULLIF(stage, 'NaN'), 'NULL'), '');
+
+--Change date format from MM/DD/YYYY to YYYY-MM-DD
+UPDATE world_layoffs.layoffs_staging2
+SET `date` = STR_TO_DATE(`date`, '%m/%d/%Y');
+
+-- Modify column data types in the table schema
+ALTER TABLE world_layoffs.layoffs_staging2
+MODIFY COLUMN `date` DATE,
+MODIFY COLUMN total_laid_off INT,
+MODIFY COLUMN percentage_laid_off DOUBLE,
+MODIFY COLUMN funds_raised_millions INT;
+
+-- Trim whitespace from company names
+UPDATE world_layoffs.layoffs_staging2
+SET company = TRIM(company);
+
+-- Populate missing industries using data from matching companies (e.g., Airbnb)
+UPDATE world_layoffs.layoffs_staging2 t1
+JOIN world_layoffs.layoffs_staging2 t2
+    ON t1.company = t2.company
+SET t1.industry = t2.industry
+WHERE t1.industry IS NULL
+  AND t2.industry IS NOT NULL;
+
+-- Standardize Crypto industry names
+UPDATE world_layoffs.layoffs_staging2
+SET industry = 'Crypto'
+WHERE industry LIKE 'Crypto%';
+
+-- Merge 'Fin-Tech' into 'Finance' to avoid industry fragmentation in EDA
+UPDATE world_layoffs.layoffs_staging2
+SET industry = 'Finance'
+WHERE industry = 'Fin-Tech';
+
+-- Remove trailing periods from country names
+UPDATE world_layoffs.layoffs_staging2
+SET country = TRIM(TRAILING '.' FROM country);
+
+-- Standardize location names
+UPDATE world_layoffs.layoffs_staging2
+SET location = 'Düsseldorf'
+WHERE location = 'Dusseldorf';
+
+UPDATE world_layoffs.layoffs_staging2
+SET location = 'Malmö'
+WHERE location = 'Malmo';
+
+-- 2.7. Standardize company casing inconsistencies
+UPDATE world_layoffs.layoffs_staging2 SET company = 'SalesLoft' WHERE company = 'Salesloft';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'AppGate' WHERE company = 'Appgate';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'Clearco' WHERE company = 'ClearCo';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'ByteDance' WHERE company = 'Bytedance';
+UPDATE world_layoffs.layoffs_staging2 SET company = 'CureFit' WHERE company = 'Curefit';

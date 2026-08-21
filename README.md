@@ -24,6 +24,12 @@ This project focuses on cleaning and preparing a real-world layoffs dataset for 
 <p>— <strong>Fix:</strong> Engineered a secondary staging table (`layoffs_staging2`) with an explicit `row_num INT` column, populated it, deleted rows where `row_num >= 2`, and subsequently dropped the temporary column.  
 </div>
 
-* [ ] **Standardize Data** — Address inconsistent values, naming, and formatting across the dataset.
-* [ ] **Handle Nulls & Blanks** — Identify missing or incomplete values and determine how they should be handled.
+* [x] **Standardize Data** 
+<div style="margin-left: 20px;">
+<p>— <strong>Null & String Sanitization:</strong> Replaced literal string artifacts (`'NaN'`, `'NULL'`, `''`) with standard SQL `NULL` values across numeric, date, and text fields using nested `NULLIF()` functions.
+<p>— <strong>Type Casting & Dates:</strong> Converted text-formatted dates (`MM/DD/YYYY`) into proper SQL `DATE` format (`STR_TO_DATE`) and altered table schema column data types (`date` to `DATE`, `total_laid_off` & `funds_raised_millions` to `INT`, `percentage_laid_off` to `DOUBLE`).
+<p>— <strong>Text & Industry Uniformity:</strong> Trimmed leading/trailing whitespace from company names, populated missing industries via self-joins on matching company records, standardized variations under 'Crypto', and consolidated 'Fin-Tech' into 'Finance'.
+<p>— <strong>Geography & Brand Consistency:</strong> Stripped trailing punctuation from country names, fixed local accent character formatting (e.g., 'Düsseldorf', 'Malmö'), and normalized corporate brand casing (e.g., 'SalesLoft', 'ByteDance').
+</div>
+
 * [ ] **Final Cleanup** — Remove unnecessary columns, rows, or temporary elements and prepare the final cleaned dataset.
