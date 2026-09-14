@@ -1,28 +1,8 @@
--- 1. DATA STANGING
-CREATE DATABASE world_layoffs;
+-- 1. DATA STAGING
+CREATE DATABASE IF NOT EXISTS world_layoffs;
 USE world_layoffs;
 
-/*
-Note: The date column is imported as text because its format in the raw file does not meet SQL standards. 
-This will be fixed during the standardization stage.
-*/
-
-CREATE TABLE layoffs (
-    company TEXT,
-    `location` TEXT,
-    industry TEXT,
-    total_laid_off TEXT,
-    percentage_laid_off TEXT,
-    `date` TEXT,
-    stage TEXT,
-    country TEXT,
-    funds_raised_millions TEXT
-);
-
 -- Create staging table for safe data cleaning
-
-SELECT * 
-FROM world_layoffs.layoffs;
 
 CREATE TABLE world_layoffs.layoffs_staging 
 LIKE world_layoffs.layoffs;
@@ -85,7 +65,7 @@ DELETE
 FROM world_layoffs.layoffs_staging2
 WHERE row_num >= 2;
 
---Drop the temporary helper column
+-- Drop the temporary helper column
 ALTER TABLE world_layoffs.layoffs_staging2
 DROP COLUMN row_num;
 
@@ -155,16 +135,7 @@ UPDATE world_layoffs.layoffs_staging2 SET company = 'CureFit' WHERE company = 'C
 
 -- 4. FINAL CLEANUP
 
-SELECT *
-FROM world_layoffs.layoffs_staging2
-WHERE total_laid_off IS NULL
-AND percentage_laid_off IS NULL;
-
-
 -- Remove data that can't be used
 DELETE FROM world_layoffs.layoffs_staging2
 WHERE total_laid_off IS NULL 
   AND percentage_laid_off IS NULL;
-
-SELECT * 
-FROM world_layoffs.layoffs_staging2;
